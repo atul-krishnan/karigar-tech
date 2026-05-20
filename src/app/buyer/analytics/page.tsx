@@ -38,7 +38,16 @@ export default function BuyerAnalyticsPage() {
             { label: "Grey Fabric", value: "12%", color: "#7b54d8" },
             { label: "Packaging", value: "6%", color: "#94a3b8" },
           ]} />
-          <MiniTrend title="Price Trends (₹ / Kg)" value="Cotton Yarn 30s ₹234.50" />
+          <MiniTrend
+            title="Price Trend — Cotton Yarn 30s"
+            subtitle="6-week rolling average across Surat & Tiruppur clusters"
+            value="₹234.50"
+            yUnit="₹"
+            period="6 weeks"
+            delta={{ value: "−5.8%", tone: "down" }}
+            points={[248, 245, 242, 238, 236, 234.5]}
+            xLabels={["Apr W1", "Apr W2", "Apr W3", "Apr W4", "May W1", "May W2"]}
+          />
           <InsightList title="AI Insights" items={[
             { label: "Overall Intelligence", body: "Cotton yarn prices are trending down in key hubs, creating a good buying window for the next 2-3 weeks.", cta: "View full analysis" },
           ]} />
@@ -74,10 +83,22 @@ export default function BuyerAnalyticsPage() {
           <Card>
             <CardHeader title="Market Intelligence — India" description="Cotton Yarn 30s price across hubs" />
             <div className="p-5">
-              <IndiaMap pins={marketIntelPins} variant="intel" showLegend showRoutes />
+              <div className="mx-auto max-w-[440px]">
+                <IndiaMap pins={marketIntelPins} variant="intel" showLegend />
+              </div>
             </div>
           </Card>
-          <MiniTrend title="Forecast & Scenario Analysis" value="Base case ₹228/kg" color="#10a78a" />
+          <MiniTrend
+            title="Forecast & Scenario Analysis"
+            subtitle="Cotton Yarn 30s · next 5 weeks projected"
+            value="₹228/kg"
+            color="#10a78a"
+            yUnit="₹"
+            period="Forecast"
+            delta={{ value: "Base case", tone: "flat" }}
+            points={[234.5, 230, 228, 226, 228, 230]}
+            xLabels={["Now", "+1w", "+2w", "+3w", "+4w", "+5w"]}
+          />
         </div>
       </div>
     </AppShell>

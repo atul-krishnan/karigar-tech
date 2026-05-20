@@ -146,18 +146,121 @@ export function AlertList({
   );
 }
 
-export function MiniTrend({ title, value, color = "#0d6efd" }: { title: string; value: string; color?: string }) {
-  const points = [20, 18, 22, 24, 23, 28, 30, 32, 31, 35, 38, 41];
-  const path = points.map((point, index) => `${index * 28},${70 - point}`).join(" ");
+export function MiniTrend({
+  title,
+  value,
+  subtitle,
+  color = "#2563EB",
+  points: rawPoints,
+  xLabels = ["W1", "W2", "W3", "W4", "W5", "W6", "W7"],
+  yUnit = "",
+  delta,
+  period = "Last 6 weeks",
+}: {
+  title: string;
+  value: string;
+  subtitle?: string;
+  color?: string;
+  points?: number[];
+  xLabels?: string[];
+  yUnit?: string;
+  delta?: { value: string; tone: "up" | "down" | "flat" };
+  period?: string;
+}) {
+  const points = rawPoints ?? [220, 226, 232, 230, 234, 231, 228];
+  const min = Math.min(...points);
+  const max = Math.max(...points);
+  const range = Math.max(max - min, 1);
+  const padded = { min: min - range * 0.15, max: max + range * 0.15 };
+  const W = 320;
+  const H = 130;
+  const padX = 38;
+  const padTop = 12;
+  const padBottom = 28;
+  const innerW = W - padX - 8;
+  const innerH = H - padTop - padBottom;
+  const toX = (i: number) => padX + (i / (points.length - 1)) * innerW;
+  const toY = (v: number) => padTop + (1 - (v - padded.min) / (padded.max - padded.min)) * innerH;
+  const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"} ${toX(i)} ${toY(p)}`).join(" ");
+  const areaPath = `${linePath} L ${toX(points.length - 1)} ${padTop + innerH} L ${toX(0)} ${padTop + innerH} Z`;
+  const gridValues = [padded.max, (padded.max + padded.min) / 2, padded.min];
+
+  const formatTick = (v: number, unit: string) => {
+    const abs = Math.abs(v);
+    if (abs >= 1000) return `${unit}${Math.round(v).toLocaleString("en-IN")}`;
+    if (abs >= 10) return `${unit}${Math.round(v)}`;
+    return `${unit}${v.toFixed(1)}`;
+  };
+
+  const deltaTone =
+    delta?.tone === "up"
+      ? "text-emerald-700 bg-emerald-50"
+      : delta?.tone === "down"
+        ? "text-red-700 bg-red-50"
+        : "text-slate-700 bg-slate-100";
 
   return (
     <Card>
-      <CardHeader title={title} action={<Badge tone="neutral">7 Days</Badge>} />
+      <CardHeader title={title} action={<Badge tone="neutral">{period}</Badge>} />
       <div className="p-5">
-        <div className="text-2xl font-bold text-slate-950">{value}</div>
-        <svg viewBox="0 0 310 90" className="mt-4 h-32 w-full overflow-visible">
-          <polyline fill="none" stroke={color} strokeWidth="4" points={path} strokeLinecap="round" strokeLinejoin="round" />
-          <polygon points={`${path} 308,90 0,90`} fill={color} opacity="0.08" />
+        <div className="flex items-baseline justify-between gap-3">
+          <div>
+            <div className="text-2xl font-bold text-slate-950">{value}</div>
+            {subtitle && <div className="mt-1 text-xs font-semibold text-slate-500">{subtitle}</div>}
+          </div>
+          {delta && (
+            <span className={cn("rounded-full px-2.5 py-1 text-xs font-bold", deltaTone)}>
+              {delta.value}
+            </span>
+          )}
+        </div>
+        <svg viewBox={`0 0 ${W} ${H}`} className="mt-4 h-36 w-full" role="img" aria-label={title}>
+          <defs>
+            <linearGradient id={`mt-fill-${title.replace(/\s+/g, "")}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity="0.22" />
+              <stop offset="100%" stopColor={color} stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          {gridValues.map((v) => (
+            <g key={v}>
+              <line x1={padX} y1={toY(v)} x2={W - 8} y2={toY(v)} stroke="#E2E8F0" strokeDasharray="2,3" />
+              <text
+                x={padX - 6}
+                y={toY(v) + 3}
+                fontSize="9"
+                fill="#94A3B8"
+                textAnchor="end"
+                fontWeight="600"
+              >
+                {formatTick(v, yUnit)}
+              </text>
+            </g>
+          ))}
+          <path d={areaPath} fill={`url(#mt-fill-${title.replace(/\s+/g, "")})`} />
+          <path
+            d={linePath}
+            fill="none"
+            stroke={color}
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          {points.map((p, i) => (
+            <circle key={i} cx={toX(i)} cy={toY(p)} r={i === points.length - 1 ? 4 : 2.6} fill={color} stroke="#fff" strokeWidth="1.5" />
+          ))}
+          {xLabels.slice(0, points.length).map((label, i) => (
+            <text
+              key={label}
+              x={toX(i)}
+              y={H - 8}
+              fontSize="9.5"
+              fill="#64748B"
+              textAnchor="middle"
+              fontWeight="600"
+            >
+              {label}
+            </text>
+          ))}
         </svg>
       </div>
     </Card>
@@ -204,18 +307,51 @@ export function StatusStepper({
   steps: Array<{ label: string; meta: string; done?: boolean; active?: boolean }>;
 }) {
   return (
-    <div className="grid gap-3 rounded-xl border border-slate-200 bg-white p-5 md:grid-cols-4">
-      {steps.map((step, index) => (
-        <div key={step.label} className="relative flex items-start gap-3">
-          <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2", step.done ? "border-emerald-500 bg-emerald-500 text-white" : step.active ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-400")}>
-            {step.done ? <CheckCircle2 className="h-5 w-5" /> : index + 1}
-          </div>
-          <div>
-            <div className="font-bold text-slate-950">{step.label}</div>
-            <div className="mt-1 text-xs text-slate-500">{step.meta}</div>
-          </div>
-        </div>
-      ))}
+    <div className="rounded-xl border border-slate-200 bg-white p-5">
+      <ol className="flex w-full items-start">
+        {steps.map((step, index) => {
+          const isLast = index === steps.length - 1;
+          // Line after this step is "complete" (green) only if THIS step is done.
+          // If this step is active, the trailing line is dashed/pending.
+          const lineDone = step.done && !step.active;
+          return (
+            <li key={step.label} className="flex flex-1 items-start">
+              <div className="flex min-w-0 flex-col items-center text-center">
+                <div
+                  className={cn(
+                    "flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-bold shadow-sm",
+                    step.done
+                      ? "border-emerald-500 bg-emerald-500 text-white"
+                      : step.active
+                        ? "border-blue-600 bg-white text-blue-700 ring-4 ring-blue-100"
+                        : "border-slate-300 bg-white text-slate-400",
+                  )}
+                >
+                  {step.done ? <CheckCircle2 className="h-5 w-5" /> : index + 1}
+                </div>
+                <div className="mt-2 max-w-[7.5rem] text-sm font-bold leading-tight text-slate-950">
+                  {step.label}
+                </div>
+                <div className="mt-1 text-xs text-slate-500">{step.meta}</div>
+              </div>
+              {!isLast && (
+                <div className="mt-5 h-0.5 flex-1" aria-hidden>
+                  <div
+                    className={cn(
+                      "h-full w-full rounded-full",
+                      lineDone
+                        ? "bg-emerald-500"
+                        : step.active
+                          ? "bg-gradient-to-r from-blue-500 via-blue-300 to-slate-200"
+                          : "bg-slate-200",
+                    )}
+                  />
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ol>
     </div>
   );
 }

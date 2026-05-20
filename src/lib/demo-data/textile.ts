@@ -283,26 +283,30 @@ export const alertItems = [
   { title: "Payment due tomorrow", body: "Two invoices worth ₹3,85,300 are due tomorrow.", tone: "blue" as const, action: "View invoices" },
 ];
 
+// Coordinates target a 380×440 viewBox India outline (see components/maps/india-map.tsx).
+// Positions approximate real geography: Ludhiana (Punjab, north), Ahmedabad/Surat (Gujarat, west),
+// Tiruppur/Coimbatore (Tamil Nadu, south).
 export const mapPins = [
-  { city: "Ludhiana", value: 16, x: 168, y: 64 },
-  { city: "Ahmedabad", value: 18, x: 132, y: 150 },
-  { city: "Surat", value: 32, x: 148, y: 192 },
-  { city: "Tiruppur", value: 36, x: 198, y: 252 },
-  { city: "Coimbatore", value: 24, x: 176, y: 280 },
+  { city: "Ludhiana", value: 16, x: 148, y: 78 },
+  { city: "Ahmedabad", value: 18, x: 92, y: 195 },
+  { city: "Surat", value: 32, x: 100, y: 225 },
+  { city: "Tiruppur", value: 36, x: 178, y: 348 },
+  { city: "Coimbatore", value: 24, x: 168, y: 372 },
 ];
 
 export const marketIntelPins = [
-  { city: "Ludhiana", x: 168, y: 64, meta: "₹176/Kg", delta: { value: "-2.1%", tone: "down" as const } },
-  { city: "Ahmedabad", x: 132, y: 150, meta: "₹172/Kg", delta: { value: "-1.4%", tone: "down" as const } },
-  { city: "Surat", x: 148, y: 192, meta: "₹168/Kg", delta: { value: "-3.2%", tone: "down" as const } },
-  { city: "Tiruppur", x: 198, y: 252, meta: "₹170/Kg", delta: { value: "-2.6%", tone: "down" as const } },
-  { city: "Coimbatore", x: 176, y: 280, meta: "₹166/Kg", delta: { value: "-3.8%", tone: "down" as const } },
+  { city: "Ludhiana", x: 148, y: 78, meta: "₹176/Kg", delta: { value: "-2.1%", tone: "down" as const } },
+  { city: "Ahmedabad", x: 92, y: 195, meta: "₹172/Kg", delta: { value: "-1.4%", tone: "down" as const } },
+  { city: "Surat", x: 100, y: 225, meta: "₹168/Kg", delta: { value: "-3.2%", tone: "down" as const } },
+  { city: "Tiruppur", x: 178, y: 348, meta: "₹170/Kg", delta: { value: "-2.6%", tone: "down" as const } },
+  { city: "Coimbatore", x: 168, y: 372, meta: "₹166/Kg", delta: { value: "-3.8%", tone: "down" as const } },
 ];
 
+// Surat (Gujarat, ~21°N 72°E) → Bengaluru (Karnataka, ~13°N 77°E) → Coimbatore (Tamil Nadu, ~11°N 77°E)
 export const shipmentStops = [
-  { label: "Surat", sub: "Gujarat", x: 72, y: 80, status: "done" as const },
-  { label: "Bengaluru Hub", sub: "In-Transit", x: 220, y: 130, status: "active" as const },
-  { label: "Coimbatore WH", sub: "ETA 21 May", x: 320, y: 160, status: "pending" as const },
+  { label: "Surat", sub: "Gujarat · Dispatched", x: 100, y: 225, status: "done" as const },
+  { label: "Bengaluru Hub", sub: "In-Transit · 17 May", x: 170, y: 312, status: "active" as const },
+  { label: "Coimbatore WH", sub: "ETA 21 May", x: 168, y: 372, status: "pending" as const },
 ];
 
 export const adminQueue = [

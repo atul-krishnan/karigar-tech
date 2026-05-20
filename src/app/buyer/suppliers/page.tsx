@@ -104,8 +104,10 @@ export default function SupplierNetworkPage() {
           <Card>
             <CardHeader title="Supplier Concentration" description="Active suppliers by textile cluster" />
             <div className="p-5">
-              <IndiaMap pins={mapPins} variant="concentration" />
-              <div className="mt-3 flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-600">
+              <div className="mx-auto max-w-[340px]">
+                <IndiaMap pins={mapPins} variant="concentration" />
+              </div>
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-3 text-xs font-semibold text-slate-600">
                 <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-orange-500" /> Active hub</span>
                 <span className="text-slate-400">126 suppliers across 5 clusters</span>
               </div>

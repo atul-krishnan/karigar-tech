@@ -51,11 +51,22 @@ export default function OrdersPage() {
                 { label: "Delivered", meta: "ETA 21 May 2026" },
               ]} />
               <div className="mt-4 rounded-xl border border-slate-200 bg-white p-3">
-                <ShipmentMap stops={shipmentStops} />
+                <div className="mx-auto max-w-[360px]">
+                  <ShipmentMap stops={shipmentStops} />
+                </div>
               </div>
             </div>
           </Card>
-          <MiniTrend title="Logistics Cost Trend" value="₹2,18,450 ↑ 8.3%" />
+          <MiniTrend
+            title="Logistics Cost Trend"
+            subtitle="Weekly freight + handling spend across all lanes"
+            value="₹2,18,450"
+            yUnit="₹"
+            period="7 weeks"
+            delta={{ value: "+8.3%", tone: "up" }}
+            points={[192000, 198000, 201000, 205000, 211000, 215000, 218450]}
+            xLabels={["W14", "W15", "W16", "W17", "W18", "W19", "W20"]}
+          />
           <QuickActions actions={[
             { label: "Expedite Shipment", href: "#", icon: Truck },
             { label: "Contact Supplier", href: "#", icon: Contact },

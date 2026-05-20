@@ -2,7 +2,7 @@ type Pin = {
   city: string;
   /** SVG-space x coordinate (0–380) */
   x: number;
-  /** SVG-space y coordinate (0–340) */
+  /** SVG-space y coordinate (0–440) */
   y: number;
   /** Optional label suffix shown beside city name */
   meta?: string;
@@ -19,6 +19,7 @@ type Props = {
   showRoutes?: boolean;
   showLegend?: boolean;
   className?: string;
+  height?: number;
 };
 
 const TONE_COLOR: Record<string, string> = {
@@ -27,9 +28,12 @@ const TONE_COLOR: Record<string, string> = {
   flat: "#94A3B8",
 };
 
-const INDIA_PATH =
-  // Stylised India landmass — approximate outline for an at-a-glance visual.
-  "M155 18 C175 16 200 22 225 30 C250 26 275 32 290 50 C302 70 308 92 312 112 C318 130 322 150 326 168 C328 190 320 210 312 226 C306 244 296 258 286 274 C272 290 252 304 232 312 C214 322 196 332 178 338 C160 344 144 332 134 318 C124 302 116 286 110 270 C100 256 92 240 84 222 C74 206 64 188 58 168 C52 148 50 128 56 108 C62 90 76 76 92 64 C108 52 124 42 138 32 C144 26 148 22 155 18 Z";
+// Stylised India landmass: 380 wide × 440 tall. Captures Kashmir peak,
+// the Northeast finger, Gujarat west bulge, and Kanyakumari south point.
+export const INDIA_PATH =
+  "M 145 22 L 165 18 L 185 22 L 210 28 L 240 30 L 268 38 L 290 60 L 310 80 L 320 100 L 308 115 L 285 122 L 270 138 L 258 152 L 268 175 L 278 200 L 275 230 L 262 258 L 245 290 L 222 322 L 200 355 L 185 385 L 175 415 L 165 405 L 158 380 L 148 355 L 135 320 L 118 290 L 102 260 L 88 232 L 80 210 L 68 215 L 52 220 L 42 210 L 50 192 L 60 175 L 65 155 L 60 132 L 70 110 L 85 92 L 100 75 L 115 55 L 128 38 Z";
+
+const SRI_LANKA_PATH = "M 200 425 Q 215 422 220 432 Q 215 442 205 440 Q 195 435 200 425 Z";
 
 export function IndiaMap({
   pins,
@@ -37,11 +41,13 @@ export function IndiaMap({
   showRoutes = false,
   showLegend = false,
   className,
+  height,
 }: Props) {
   return (
     <svg
-      viewBox="0 0 380 340"
+      viewBox="0 0 380 440"
       width="100%"
+      style={height ? { height, width: "100%" } : undefined}
       className={className}
       role="img"
       aria-label="Map of India with supplier locations"
@@ -56,14 +62,15 @@ export function IndiaMap({
         </linearGradient>
       </defs>
 
-      <rect width="380" height="340" fill="#F8FAFC" />
-      <rect width="380" height="340" fill="url(#kr-map-dots)" />
-      <path
-        d={INDIA_PATH}
-        fill="url(#kr-map-land)"
-        stroke="#94A3B8"
-        strokeWidth="0.8"
-      />
+      <rect width="380" height="440" fill="#F8FAFC" />
+      <rect width="380" height="440" fill="url(#kr-map-dots)" />
+      <path d={INDIA_PATH} fill="url(#kr-map-land)" stroke="#64748B" strokeWidth="1.1" strokeLinejoin="round" />
+      <path d={SRI_LANKA_PATH} fill="url(#kr-map-land)" stroke="#64748B" strokeWidth="1" />
+
+      {/* Country label */}
+      <text x="200" y="200" fontSize="11" fill="#94A3B8" fontWeight="600" textAnchor="middle" opacity="0.55">
+        INDIA
+      </text>
 
       {showRoutes &&
         pins.slice(0, -1).map((pin, idx) => {
@@ -75,9 +82,10 @@ export function IndiaMap({
               y1={pin.y}
               x2={next.x}
               y2={next.y}
-              stroke="#94A3B8"
-              strokeWidth="0.8"
+              stroke="#3B82F6"
+              strokeWidth="1.2"
               strokeDasharray="3,3"
+              opacity="0.7"
             />
           );
         })}
@@ -86,52 +94,43 @@ export function IndiaMap({
         const deltaColor = pin.delta ? TONE_COLOR[pin.delta.tone ?? "flat"] : "#475569";
         const pinColor = pin.color ?? (variant === "concentration" ? "#F97316" : "#F59E0B");
         if (variant === "concentration" && pin.value !== undefined) {
+          // Place label to the right so we don't overlap pin
+          const labelX = pin.x + 16;
+          const labelY = pin.y + 4;
           return (
             <g key={pin.city}>
-              <circle cx={pin.x} cy={pin.y} r="16" fill={pinColor} opacity="0.18" />
-              <circle cx={pin.x} cy={pin.y} r="11" fill={pinColor} stroke="#fff" strokeWidth="2" />
-              <text
-                x={pin.x}
-                y={pin.y + 3}
-                textAnchor="middle"
-                fontSize="9"
-                fontWeight="700"
-                fill="#fff"
-              >
+              <circle cx={pin.x} cy={pin.y} r="18" fill={pinColor} opacity="0.15" />
+              <circle cx={pin.x} cy={pin.y} r="12" fill={pinColor} stroke="#fff" strokeWidth="2.5" />
+              <text x={pin.x} y={pin.y + 4} textAnchor="middle" fontSize="10" fontWeight="700" fill="#fff">
                 {pin.value}
               </text>
-              <text
-                x={pin.x}
-                y={pin.y + 26}
-                textAnchor="middle"
-                fontSize="10"
-                fontWeight="600"
-                fill="#0F172A"
-              >
+              <text x={labelX} y={labelY} fontSize="11" fontWeight="700" fill="#0F172A">
                 {pin.city}
               </text>
             </g>
           );
         }
+        // Intel-variant pill label
+        const labelX = pin.x + 14;
         return (
           <g key={pin.city}>
-            <circle cx={pin.x} cy={pin.y} r="6" fill={pinColor} stroke="#fff" strokeWidth="2" />
+            <circle cx={pin.x} cy={pin.y} r="7" fill={pinColor} stroke="#fff" strokeWidth="2.5" />
             <rect
-              x={pin.x + 10}
-              y={pin.y - 18}
-              width="98"
-              height="36"
-              rx="4"
+              x={labelX}
+              y={pin.y - 16}
+              width="104"
+              height="34"
+              rx="6"
               fill="#fff"
               stroke="#E2E8F0"
             />
-            <text x={pin.x + 16} y={pin.y - 5} fontSize="10" fontWeight="600" fill="#0F172A">
+            <text x={labelX + 8} y={pin.y - 3} fontSize="10.5" fontWeight="700" fill="#0F172A">
               {pin.city}
             </text>
-            <text x={pin.x + 16} y={pin.y + 8} fontSize="9" fill="#64748B">
+            <text x={labelX + 8} y={pin.y + 11} fontSize="9.5" fill="#64748B">
               {pin.meta ?? ""}{" "}
               {pin.delta && (
-                <tspan fill={deltaColor} fontWeight="600">
+                <tspan fill={deltaColor} fontWeight="700">
                   {pin.delta.value}
                 </tspan>
               )}
@@ -141,10 +140,10 @@ export function IndiaMap({
       })}
 
       {showLegend && (
-        <g transform="translate(260, 16)">
-          <rect x="0" y="0" width="108" height="86" rx="6" fill="#fff" stroke="#E2E8F0" />
-          <text x="8" y="16" fontSize="9" fill="#64748B" fontWeight="700">
-            Price vs 30 Days Ago
+        <g transform="translate(252, 18)">
+          <rect x="0" y="0" width="118" height="92" rx="6" fill="#fff" stroke="#E2E8F0" />
+          <text x="9" y="16" fontSize="9.5" fill="#0F172A" fontWeight="700">
+            Price vs 30 days ago
           </text>
           {[
             ["> 3% Decrease", "#059669"],
@@ -153,9 +152,9 @@ export function IndiaMap({
             ["1–3% Increase", "#F59E0B"],
             ["> 3% Increase", "#EF4444"],
           ].map(([label, color], i) => (
-            <g key={label} transform={`translate(8, ${28 + i * 11})`}>
-              <circle cx="3" cy="3" r="3" fill={color} />
-              <text x="12" y="6" fontSize="9" fill="#475569">
+            <g key={label} transform={`translate(9, ${30 + i * 11})`}>
+              <circle cx="3.5" cy="3.5" r="3.5" fill={color} />
+              <text x="14" y="7" fontSize="9.5" fill="#475569">
                 {label}
               </text>
             </g>

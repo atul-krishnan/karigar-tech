@@ -95,7 +95,17 @@ export default function FinanceComingSoonPage() {
           ]} />
         </div>
         <div className="grid gap-5 xl:grid-cols-[1.1fr_0.8fr]">
-          <MiniTrend title="Cash Flow Impact (Next 30 Days)" value="Net impact: -₹0.85 Cr" color="#1764ff" />
+          <MiniTrend
+            title="Cash Flow Impact — Next 30 Days"
+            subtitle="Projected net cash position: payables vs receivables"
+            value="−₹0.85 Cr"
+            color="#1764ff"
+            yUnit="₹"
+            period="30 days"
+            delta={{ value: "Net outflow", tone: "down" }}
+            points={[2.4, 1.8, 1.1, 0.4, -0.2, -0.6, -0.85]}
+            xLabels={["Today", "+5d", "+10d", "+15d", "+20d", "+25d", "+30d"]}
+          />
           <QuickActions actions={[
             { label: "Request Finance", href: "#", icon: Landmark },
             { label: "Upload Invoice", href: "#", icon: FileText },

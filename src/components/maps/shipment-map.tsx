@@ -1,3 +1,5 @@
+import { INDIA_PATH } from "@/components/maps/india-map";
+
 type Stop = {
   label: string;
   sub?: string;
@@ -12,73 +14,95 @@ type Props = {
 };
 
 const STATUS_COLOR: Record<Stop["status"], string> = {
-  done: "#2563EB",
-  active: "#3B82F6",
-  pending: "#EF4444",
+  done: "#10B981",
+  active: "#2563EB",
+  pending: "#64748B",
 };
 
 export function ShipmentMap({ stops, className }: Props) {
   const active = stops.find((s) => s.status === "active");
   return (
     <svg
-      viewBox="0 0 380 200"
+      viewBox="0 0 380 440"
       width="100%"
       className={className}
       role="img"
       aria-label="Shipment tracking map"
     >
       <defs>
-        <pattern id="kr-ship-dots" x="0" y="0" width="18" height="18" patternUnits="userSpaceOnUse">
-          <rect width="18" height="18" fill="#EFF6FF" />
-          <circle cx="9" cy="9" r="0.6" fill="#CBD5E1" />
+        <pattern id="kr-ship-dots" x="0" y="0" width="14" height="14" patternUnits="userSpaceOnUse">
+          <rect width="14" height="14" fill="#F8FAFC" />
+          <circle cx="7" cy="7" r="0.6" fill="#CBD5E1" />
         </pattern>
+        <linearGradient id="kr-ship-land" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#DBEAFE" />
+          <stop offset="100%" stopColor="#E0F2FE" />
+        </linearGradient>
       </defs>
-      <rect width="380" height="200" rx="10" fill="url(#kr-ship-dots)" />
+
+      <rect width="380" height="440" rx="10" fill="url(#kr-ship-dots)" />
       <path
-        d="M28 40 L88 30 L150 48 L200 36 L260 58 L320 50 L355 80 L348 130 L320 160 L260 175 L200 170 L148 178 L100 162 L60 138 L36 100 Z"
-        fill="#DBEAFE"
-        stroke="#94A3B8"
-        strokeWidth="0.6"
+        d={INDIA_PATH}
+        fill="url(#kr-ship-land)"
+        stroke="#64748B"
+        strokeWidth="1.1"
+        strokeLinejoin="round"
       />
 
+      {/* Route */}
       {stops.slice(0, -1).map((stop, idx) => {
         const next = stops[idx + 1];
-        const midX = (stop.x + next.x) / 2;
-        const midY = (stop.y + next.y) / 2 - 18;
+        const midX = (stop.x + next.x) / 2 + 12;
+        const midY = (stop.y + next.y) / 2 - 6;
         return (
           <path
             key={`leg-${stop.label}`}
             d={`M${stop.x} ${stop.y} Q ${midX} ${midY}, ${next.x} ${next.y}`}
             stroke="#2563EB"
-            strokeWidth="2"
+            strokeWidth="2.2"
             strokeDasharray="5,4"
             fill="none"
+            strokeLinecap="round"
           />
         );
       })}
 
       {stops.map((stop) => (
         <g key={stop.label}>
-          <circle cx={stop.x} cy={stop.y} r="7" fill={STATUS_COLOR[stop.status]} stroke="#fff" strokeWidth="2.5" />
-          <text x={stop.x} y={stop.y + 22} textAnchor="middle" fontSize="10" fontWeight="700" fill="#0F172A">
+          <circle
+            cx={stop.x}
+            cy={stop.y}
+            r="9"
+            fill={STATUS_COLOR[stop.status]}
+            stroke="#fff"
+            strokeWidth="3"
+          />
+          <text
+            x={stop.x + 14}
+            y={stop.y - 2}
+            fontSize="11"
+            fontWeight="700"
+            fill="#0F172A"
+          >
             {stop.label}
           </text>
           {stop.sub && (
-            <text x={stop.x} y={stop.y + 34} textAnchor="middle" fontSize="9" fill="#64748B">
+            <text x={stop.x + 14} y={stop.y + 11} fontSize="9.5" fill="#64748B">
               {stop.sub}
             </text>
           )}
         </g>
       ))}
 
+      {/* Truck callout above the active stop */}
       {active && (
-        <g transform={`translate(${active.x}, ${active.y - 36})`}>
-          <circle r="14" fill="#fff" stroke="#3B82F6" strokeWidth="2" />
+        <g transform={`translate(${active.x}, ${active.y - 28})`}>
+          <circle r="13" fill="#fff" stroke="#2563EB" strokeWidth="2" />
           <g
             transform="translate(-8 -7)"
             fill="none"
-            stroke="#3B82F6"
-            strokeWidth="1.8"
+            stroke="#2563EB"
+            strokeWidth="1.7"
             strokeLinecap="round"
             strokeLinejoin="round"
           >
@@ -89,7 +113,28 @@ export function ShipmentMap({ stops, className }: Props) {
         </g>
       )}
 
-      <g transform="translate(345, 12)">
+      {/* Legend */}
+      <g transform="translate(18, 20)">
+        <rect width="120" height="56" rx="6" fill="#fff" stroke="#E2E8F0" />
+        <text x="10" y="16" fontSize="9.5" fontWeight="700" fill="#0F172A">
+          Shipment status
+        </text>
+        {[
+          ["Completed", STATUS_COLOR.done],
+          ["In-Transit", STATUS_COLOR.active],
+          ["Pending", STATUS_COLOR.pending],
+        ].map(([label, color], i) => (
+          <g key={label} transform={`translate(10, ${26 + i * 10})`}>
+            <circle cx="3.5" cy="3.5" r="3.5" fill={color} />
+            <text x="12" y="7" fontSize="9.5" fill="#475569">
+              {label}
+            </text>
+          </g>
+        ))}
+      </g>
+
+      {/* Zoom control */}
+      <g transform="translate(345, 18)">
         <rect width="22" height="44" rx="4" fill="#fff" stroke="#E2E8F0" />
         <text x="11" y="16" fontSize="14" fontWeight="700" fill="#475569" textAnchor="middle">
           +
