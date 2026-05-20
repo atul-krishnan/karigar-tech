@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Karigar
 
-## Getting Started
+Procurement OS for Indian textile MSMEs.
 
-First, run the development server:
+The app is built as a free-tier-friendly Next.js full-stack product with Supabase Auth, Supabase Postgres, Prisma, invite-only RFQs, live buyer bid visibility, supplier verification, purchase orders, invoice tracking, and a future finance placeholder.
+
+## Stack
+
+- Next.js App Router, React, TypeScript, Tailwind CSS
+- Supabase Auth for login/session identity
+- Supabase Postgres with Prisma ORM
+- Supabase Storage or Cloudflare R2-ready document storage
+- Zod validation for API payloads
+- Modular service layer under `src/lib/domain`
+
+## Key Paths
+
+- `/` product entry and role switcher
+- `/buyer` buyer dashboard
+- `/buyer/rfqs/new` RFQ creation
+- `/buyer/rfqs/rfq-tx-1042/compare` live bid comparison
+- `/buyer/purchase-orders/po-tx-9021` purchase order tracking
+- `/supplier` supplier dashboard
+- `/supplier/verification` supplier document workflow
+- `/supplier/rfqs/rfq-tx-1042` supplier bid submission
+- `/admin` admin operations dashboard
+- `/admin/suppliers` supplier verification queue
+- `/admin/rfqs/new` admin-created RFQ on behalf of buyer
+- `/finance` future embedded finance placeholder
+
+## Setup
 
 ```bash
+npm install
+npm run db:generate
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Copy `.env.example` into `.env` and replace the Supabase values before connecting to a real project.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+DATABASE_URL="postgresql://..."
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="..."
+SUPABASE_SERVICE_ROLE_KEY="..."
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Database
 
-## Learn More
+The Prisma schema is in `prisma/schema.prisma`.
 
-To learn more about Next.js, take a look at the following resources:
+It includes:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Multi-tenant organizations and organization users
+- Supplier verification and documents
+- Textile category and item master
+- RFQs, invited suppliers, closed bids, bid revisions
+- Purchase orders, order status events, delivery proof
+- Invoices, invoice attachments, payments
+- Audit logs and notification events
+- Finance-ready credit profiles, risk scores, and underwriting snapshots
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## API Boundaries
 
-## Deploy on Vercel
+The first API routes are:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `POST /api/rfqs`
+- `POST /api/bids`
+- `POST /api/purchase-orders`
+- `POST /api/invoices`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+They use Supabase session context, RBAC checks, Zod validation, Prisma transactions, audit logs, and notification events.
+
+## Free-Tier Notes
+
+This MVP is intentionally deployment-light. It starts as one Next.js app so it can run on free-tier hosting while preserving module boundaries that can later be extracted to a NestJS API.

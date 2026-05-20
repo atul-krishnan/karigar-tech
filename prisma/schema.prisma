@@ -1,0 +1,603 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrganizationType {
+  BUYER
+  SUPPLIER
+  BOTH
+  ADMIN
+}
+
+enum OrganizationUserRole {
+  OWNER
+  PROCUREMENT_MANAGER
+  FINANCE_MANAGER
+  SUPPLIER_MANAGER
+  ADMIN
+  VIEWER
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  SUSPENDED
+}
+
+enum DocumentType {
+  GST
+  PAN
+  BANK_DETAILS
+  CERTIFICATION
+  QUALITY_DOCUMENT
+  OTHER
+}
+
+enum RfqStatus {
+  DRAFT
+  PUBLISHED
+  BIDDING_CLOSED
+  AWARDED
+  CANCELLED
+}
+
+enum BidStatus {
+  DRAFT
+  SUBMITTED
+  REVISED
+  WITHDRAWN
+  WON
+  LOST
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  ISSUED
+  ACCEPTED
+  PROCESSING
+  READY_FOR_DISPATCH
+  SHIPPED
+  DELIVERED
+  COMPLETED
+  CANCELLED
+}
+
+enum InvoiceStatus {
+  UPLOADED
+  RECEIVED
+  APPROVED
+  REJECTED
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+}
+
+enum FinanceApplicationStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  DISBURSED
+  CLOSED
+}
+
+model User {
+  id             String             @id @default(uuid())
+  authUserId     String             @unique
+  email          String             @unique
+  mobile         String?
+  fullName       String
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  memberships    OrganizationUser[]
+  createdRfqs    Rfq[]              @relation("CreatedRfqs")
+  createdBids    Bid[]              @relation("CreatedBids")
+  auditLogs      AuditLog[]         @relation("AuditActor")
+  statusEvents   OrderStatusEvent[] @relation("StatusActor")
+  notifications  NotificationEvent[]
+}
+
+model Organization {
+  id                    String                      @id @default(uuid())
+  name                  String
+  type                  OrganizationType
+  gstNumber             String?
+  panNumber             String?
+  businessType          String?
+  industry              String?
+  annualTurnoverRange   String?
+  verificationStatus    VerificationStatus          @default(PENDING)
+  createdAt             DateTime                    @default(now())
+  updatedAt             DateTime                    @updatedAt
+  users                 OrganizationUser[]
+  addresses             Address[]
+  bankAccounts          BankAccount[]
+  supplierProfile       SupplierProfile?
+  supplierDocuments     SupplierDocument[]
+  verificationReviews   SupplierVerificationReview[]
+  buyerRfqs             Rfq[]                       @relation("BuyerRfqs")
+  invitedRfqs           RfqInvitation[]
+  submittedBids         Bid[]
+  purchaseOrdersAsBuyer PurchaseOrder[]             @relation("BuyerPurchaseOrders")
+  purchaseOrdersAsSupplier PurchaseOrder[]          @relation("SupplierPurchaseOrders")
+  buyerMetrics          BuyerProcurementMetric[]
+  supplierMetrics       SupplierPerformanceMetric[]
+  creditProfile         CreditProfile?
+  financeApplications   FinanceApplication[]
+}
+
+model OrganizationUser {
+  id             String               @id @default(uuid())
+  organizationId String
+  userId         String
+  role           OrganizationUserRole
+  isActive       Boolean              @default(true)
+  createdAt      DateTime             @default(now())
+  organization   Organization         @relation(fields: [organizationId], references: [id])
+  user           User                 @relation(fields: [userId], references: [id])
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+}
+
+model Address {
+  id             String       @id @default(uuid())
+  organizationId String
+  label          String
+  line1          String
+  line2          String?
+  city           String
+  state          String
+  postalCode     String
+  country        String       @default("India")
+  latitude       Decimal?
+  longitude      Decimal?
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  rfqs           Rfq[]
+  purchaseOrders PurchaseOrder[]
+}
+
+model BankAccount {
+  id             String       @id @default(uuid())
+  organizationId String
+  accountName    String
+  bankName       String
+  accountNumber  String
+  ifscCode       String
+  isPrimary      Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}
+
+model SupplierProfile {
+  id                 String       @id @default(uuid())
+  organizationId     String       @unique
+  suppliedCategories String[]
+  serviceRegions     String[]
+  qualityRating      Decimal      @default(0)
+  reliabilityScore   Decimal      @default(0)
+  averageResponseHours Decimal?
+  organization       Organization @relation(fields: [organizationId], references: [id])
+}
+
+model SupplierDocument {
+  id             String          @id @default(uuid())
+  organizationId String
+  type           DocumentType
+  fileName       String
+  storageKey     String
+  mimeType       String
+  sizeBytes      Int
+  uploadedAt     DateTime        @default(now())
+  organization   Organization    @relation(fields: [organizationId], references: [id])
+}
+
+model SupplierVerificationReview {
+  id             String             @id @default(uuid())
+  organizationId String
+  reviewerUserId String?
+  status         VerificationStatus
+  notes          String?
+  reviewedAt     DateTime           @default(now())
+  organization   Organization       @relation(fields: [organizationId], references: [id])
+}
+
+model UnitOfMeasure {
+  id        String    @id @default(uuid())
+  code      String    @unique
+  label     String
+  items     Item[]
+  rfqItems  RfqItem[]
+  bidItems  BidItem[]
+  poItems   PurchaseOrderItem[]
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  parentId    String?
+  name        String
+  slug        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  parent      Category? @relation("CategoryTree", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryTree")
+  items       Item[]
+  rfqs        Rfq[]
+}
+
+model Item {
+  id             String          @id @default(uuid())
+  categoryId     String
+  unitId         String
+  name           String
+  sku            String?         @unique
+  description    String?
+  standardSpecs  Json?
+  isActive       Boolean         @default(true)
+  category       Category        @relation(fields: [categoryId], references: [id])
+  unit           UnitOfMeasure   @relation(fields: [unitId], references: [id])
+  attributes     ItemAttribute[]
+  rfqItems       RfqItem[]
+}
+
+model ItemAttribute {
+  id        String @id @default(uuid())
+  itemId    String
+  name      String
+  dataType  String
+  required  Boolean @default(false)
+  options   String[]
+  item      Item   @relation(fields: [itemId], references: [id])
+}
+
+model Rfq {
+  id                         String          @id @default(uuid())
+  buyerOrgId                 String
+  createdByUserId            String
+  categoryId                 String
+  deliveryAddressId          String?
+  title                      String
+  referenceCode              String          @unique
+  status                     RfqStatus       @default(DRAFT)
+  technicalSpecifications    String?
+  expectedDeliveryDate       DateTime
+  bidDeadline                DateTime
+  paymentTermsPreference     String?
+  qualityRequirements        String?
+  allowBuyerLiveBidVisibility Boolean        @default(true)
+  createdAt                  DateTime        @default(now())
+  updatedAt                  DateTime        @updatedAt
+  publishedAt                DateTime?
+  closedAt                   DateTime?
+  buyerOrg                   Organization    @relation("BuyerRfqs", fields: [buyerOrgId], references: [id])
+  createdBy                  User            @relation("CreatedRfqs", fields: [createdByUserId], references: [id])
+  category                   Category        @relation(fields: [categoryId], references: [id])
+  deliveryAddress            Address?        @relation(fields: [deliveryAddressId], references: [id])
+  items                      RfqItem[]
+  attachments                RfqAttachment[]
+  invitations                RfqInvitation[]
+  bids                       Bid[]
+  purchaseOrder              PurchaseOrder?
+
+  @@index([buyerOrgId, status])
+  @@index([bidDeadline])
+}
+
+model RfqItem {
+  id           String        @id @default(uuid())
+  rfqId        String
+  itemId       String
+  unitId       String
+  quantity     Decimal
+  specifications Json?
+  rfq          Rfq           @relation(fields: [rfqId], references: [id])
+  item         Item          @relation(fields: [itemId], references: [id])
+  unit         UnitOfMeasure @relation(fields: [unitId], references: [id])
+  bidItems     BidItem[]
+}
+
+model RfqAttachment {
+  id         String   @id @default(uuid())
+  rfqId      String
+  fileName   String
+  storageKey String
+  mimeType   String
+  sizeBytes  Int
+  createdAt  DateTime @default(now())
+  rfq        Rfq      @relation(fields: [rfqId], references: [id])
+}
+
+model RfqInvitation {
+  id             String       @id @default(uuid())
+  rfqId          String
+  supplierOrgId  String
+  invitedAt      DateTime     @default(now())
+  invitedByUserId String?
+  rfq            Rfq          @relation(fields: [rfqId], references: [id])
+  supplierOrg    Organization @relation(fields: [supplierOrgId], references: [id])
+
+  @@unique([rfqId, supplierOrgId])
+}
+
+model Bid {
+  id                String        @id @default(uuid())
+  rfqId             String
+  supplierOrgId     String
+  createdByUserId   String
+  status            BidStatus     @default(DRAFT)
+  pricePerUnit      Decimal
+  totalPrice        Decimal
+  taxes             Decimal       @default(0)
+  freightCharges    Decimal       @default(0)
+  totalLandedCost   Decimal
+  deliveryTimelineDays Int
+  paymentTerms      String
+  minimumOrderQuantity Decimal?
+  validityDate      DateTime
+  notes             String?
+  submittedAt       DateTime?
+  updatedAt         DateTime      @updatedAt
+  rfq               Rfq           @relation(fields: [rfqId], references: [id])
+  supplierOrg       Organization  @relation(fields: [supplierOrgId], references: [id])
+  createdBy         User          @relation("CreatedBids", fields: [createdByUserId], references: [id])
+  items             BidItem[]
+  attachments       BidAttachment[]
+  revisions         BidRevision[]
+  purchaseOrder     PurchaseOrder?
+
+  @@unique([rfqId, supplierOrgId])
+  @@index([supplierOrgId, status])
+}
+
+model BidItem {
+  id          String        @id @default(uuid())
+  bidId       String
+  rfqItemId   String
+  unitId      String
+  quantity    Decimal
+  pricePerUnit Decimal
+  totalPrice  Decimal
+  bid         Bid           @relation(fields: [bidId], references: [id])
+  rfqItem     RfqItem       @relation(fields: [rfqItemId], references: [id])
+  unit        UnitOfMeasure @relation(fields: [unitId], references: [id])
+}
+
+model BidAttachment {
+  id         String   @id @default(uuid())
+  bidId      String
+  fileName   String
+  storageKey String
+  mimeType   String
+  sizeBytes  Int
+  createdAt  DateTime @default(now())
+  bid        Bid      @relation(fields: [bidId], references: [id])
+}
+
+model BidRevision {
+  id        String   @id @default(uuid())
+  bidId     String
+  snapshot  Json
+  notes     String?
+  createdAt DateTime @default(now())
+  bid       Bid      @relation(fields: [bidId], references: [id])
+}
+
+model PurchaseOrder {
+  id                String              @id @default(uuid())
+  rfqId             String              @unique
+  winningBidId      String              @unique
+  buyerOrgId        String
+  supplierOrgId     String
+  deliveryAddressId String?
+  poNumber          String              @unique
+  status            PurchaseOrderStatus @default(DRAFT)
+  subtotal          Decimal
+  taxes             Decimal             @default(0)
+  freightCharges    Decimal             @default(0)
+  totalAmount       Decimal
+  paymentTerms      String
+  pdfStorageKey     String?
+  issuedAt          DateTime?
+  acceptedAt        DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  rfq               Rfq                 @relation(fields: [rfqId], references: [id])
+  winningBid        Bid                 @relation(fields: [winningBidId], references: [id])
+  buyerOrg          Organization        @relation("BuyerPurchaseOrders", fields: [buyerOrgId], references: [id])
+  supplierOrg       Organization        @relation("SupplierPurchaseOrders", fields: [supplierOrgId], references: [id])
+  deliveryAddress   Address?            @relation(fields: [deliveryAddressId], references: [id])
+  items             PurchaseOrderItem[]
+  statusEvents      OrderStatusEvent[]
+  deliveryProofs    DeliveryProof[]
+  invoices          Invoice[]
+  disputes          Dispute[]
+}
+
+model PurchaseOrderItem {
+  id              String        @id @default(uuid())
+  purchaseOrderId String
+  unitId          String
+  description     String
+  quantity        Decimal
+  pricePerUnit    Decimal
+  totalPrice      Decimal
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  unit            UnitOfMeasure @relation(fields: [unitId], references: [id])
+}
+
+model OrderStatusEvent {
+  id              String              @id @default(uuid())
+  purchaseOrderId String
+  status          PurchaseOrderStatus
+  notes           String?
+  actorUserId     String?
+  createdAt       DateTime            @default(now())
+  purchaseOrder   PurchaseOrder       @relation(fields: [purchaseOrderId], references: [id])
+  actor           User?               @relation("StatusActor", fields: [actorUserId], references: [id])
+}
+
+model DeliveryProof {
+  id              String        @id @default(uuid())
+  purchaseOrderId String
+  fileName        String
+  storageKey      String
+  mimeType        String
+  sizeBytes       Int
+  uploadedAt      DateTime      @default(now())
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+}
+
+model Invoice {
+  id              String        @id @default(uuid())
+  purchaseOrderId String
+  invoiceNumber   String
+  status          InvoiceStatus @default(UPLOADED)
+  paymentStatus   PaymentStatus @default(PENDING)
+  invoiceDate     DateTime
+  dueDate         DateTime?
+  amount          Decimal
+  taxAmount       Decimal       @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  attachments     InvoiceAttachment[]
+  payments        Payment[]
+}
+
+model InvoiceAttachment {
+  id         String   @id @default(uuid())
+  invoiceId  String
+  fileName   String
+  storageKey String
+  mimeType   String
+  sizeBytes  Int
+  uploadedAt DateTime @default(now())
+  invoice    Invoice  @relation(fields: [invoiceId], references: [id])
+}
+
+model Payment {
+  id          String        @id @default(uuid())
+  invoiceId   String
+  status      PaymentStatus
+  amount      Decimal
+  paidAt      DateTime?
+  reference   String?
+  notes       String?
+  createdAt   DateTime      @default(now())
+  invoice     Invoice       @relation(fields: [invoiceId], references: [id])
+}
+
+model SupplierPerformanceMetric {
+  id                    String       @id @default(uuid())
+  organizationId         String
+  completedOrders        Int          @default(0)
+  onTimeDeliveryRate     Decimal      @default(0)
+  qualityScore           Decimal      @default(0)
+  averageResponseHours   Decimal      @default(0)
+  disputeRate            Decimal      @default(0)
+  updatedAt              DateTime     @updatedAt
+  organization           Organization @relation(fields: [organizationId], references: [id])
+}
+
+model BuyerProcurementMetric {
+  id                  String       @id @default(uuid())
+  organizationId       String
+  totalProcurementValue Decimal     @default(0)
+  estimatedSavings      Decimal     @default(0)
+  rfqCount              Int         @default(0)
+  poCount               Int         @default(0)
+  delayedOrderCount     Int         @default(0)
+  updatedAt             DateTime    @updatedAt
+  organization          Organization @relation(fields: [organizationId], references: [id])
+}
+
+model AuditLog {
+  id             String   @id @default(uuid())
+  actorUserId    String?
+  organizationId String?
+  entityType     String
+  entityId       String
+  action         String
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  actor          User?    @relation("AuditActor", fields: [actorUserId], references: [id])
+}
+
+model NotificationEvent {
+  id          String   @id @default(uuid())
+  userId      String?
+  eventType   String
+  channel     String
+  payload     Json
+  processedAt DateTime?
+  createdAt   DateTime @default(now())
+  user        User?    @relation(fields: [userId], references: [id])
+}
+
+model Dispute {
+  id              String        @id @default(uuid())
+  purchaseOrderId String
+  openedByOrgId   String
+  status          String        @default("OPEN")
+  reason          String
+  resolution      String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+}
+
+model CreditProfile {
+  id                String       @id @default(uuid())
+  organizationId    String       @unique
+  buyerCreditScore  Int?
+  supplierRiskScore Int?
+  recommendedLimit  Decimal?
+  lastCalculatedAt  DateTime?
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  riskScores        RiskScore[]
+}
+
+model RiskScore {
+  id              String        @id @default(uuid())
+  creditProfileId String
+  scoreType       String
+  score           Int
+  factors         Json
+  createdAt       DateTime      @default(now())
+  creditProfile   CreditProfile @relation(fields: [creditProfileId], references: [id])
+}
+
+model FinanceApplication {
+  id             String                   @id @default(uuid())
+  organizationId String
+  purchaseOrderId String?
+  type           String
+  status         FinanceApplicationStatus @default(DRAFT)
+  requestedAmount Decimal
+  notes          String?
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+  organization   Organization             @relation(fields: [organizationId], references: [id])
+  snapshots      UnderwritingSnapshot[]
+}
+
+model UnderwritingSnapshot {
+  id                    String             @id @default(uuid())
+  financeApplicationId   String
+  transactionHistory     Json
+  supplierPerformance    Json?
+  buyerPaymentBehavior   Json?
+  generatedAt            DateTime           @default(now())
+  financeApplication     FinanceApplication @relation(fields: [financeApplicationId], references: [id])
+}
