@@ -77,7 +77,7 @@ export function AppShell({
               <KarigarMark />
               <div>
                 <div className="text-xl font-bold tracking-tight">{t.brand.name}</div>
-                <div className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-cyan-200/80">
+                <div className="mt-0.5 text-xs font-semibold text-cyan-200/85">
                   {t.brand.tagline}
                 </div>
               </div>

@@ -100,7 +100,7 @@ export type Dictionary = {
 const en: Dictionary = {
   brand: {
     name: "Karigar",
-    tagline: "Procurement OS",
+    tagline: "Made for Bharat",
     bharatLine: "Growing Bharat. Powering Procurement.",
     msmeBuilt: "Built for Indian MSMEs",
   },
@@ -194,7 +194,7 @@ const en: Dictionary = {
 const hi: Dictionary = {
   brand: {
     name: "करीगर",
-    tagline: "प्रोक्योरमेंट ओएस",
+    tagline: "भारत के लिए बना",
     bharatLine: "बढ़ता भारत। सशक्त खरीद।",
     msmeBuilt: "भारतीय एमएसएमई के लिए बनाया गया",
   },
@@ -288,7 +288,7 @@ const hi: Dictionary = {
 const or: Dictionary = {
   brand: {
     name: "କରିଗର",
-    tagline: "ପ୍ରୋକ୍ୟୋରମେଣ୍ଟ ଓଏସ୍",
+    tagline: "ଭାରତ ପାଇଁ ତିଆରି",
     bharatLine: "ବଢ଼ୁଥିବା ଭାରତ। ସଶକ୍ତ କ୍ରୟ।",
     msmeBuilt: "ଭାରତୀୟ ଏମଏସଏମଇ ପାଇଁ ତିଆରି",
   },
@@ -382,7 +382,7 @@ const or: Dictionary = {
 const ml: Dictionary = {
   brand: {
     name: "കരിഗർ",
-    tagline: "പ്രൊക്യൂർമെന്റ് ഒഎസ്",
+    tagline: "ഭാരതത്തിനായി",
     bharatLine: "വളരുന്ന ഭാരതം. ശക്തമായ വാങ്ങൽ.",
     msmeBuilt: "ഇന്ത്യൻ MSME-കൾക്കായി",
   },

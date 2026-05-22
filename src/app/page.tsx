@@ -64,9 +64,7 @@ export default function Home() {
             <KarigarMark size="md" tone="light" />
             <div>
               <div className="text-lg font-extrabold tracking-tight">{t.brand.name}</div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                {t.brand.tagline}
-              </div>
+              <div className="text-xs font-semibold text-slate-500">{t.brand.tagline}</div>
             </div>
           </Link>
           <nav className="hidden items-center gap-1 text-sm font-semibold text-slate-600 md:flex">
