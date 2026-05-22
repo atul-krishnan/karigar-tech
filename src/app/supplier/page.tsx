@@ -10,7 +10,7 @@ export default function SupplierDashboard() {
       <PageHeading
         eyebrow="Supplier workspace"
         title="Surat Tex Yarns"
-        description="Respond to invited textile RFQs, revise bids before deadline, accept POs, update order status, and upload invoices."
+        description="Respond to invited RFQs, revise bids before the deadline, accept POs, update order status, and upload invoices for fast payment."
       />
       <div className="space-y-6">
         <MetricGrid

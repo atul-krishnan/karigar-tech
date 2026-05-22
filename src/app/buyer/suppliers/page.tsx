@@ -102,7 +102,7 @@ export default function SupplierNetworkPage() {
 
         <div className="grid gap-5 xl:grid-cols-[1fr_1fr_1.1fr]">
           <Card>
-            <CardHeader title="Supplier Concentration" description="Active suppliers by textile cluster" />
+            <CardHeader title="Supplier Concentration" description="Active suppliers by industrial cluster" />
             <div className="p-5">
               <div className="mx-auto max-w-[340px]">
                 <IndiaMap pins={mapPins} variant="concentration" />

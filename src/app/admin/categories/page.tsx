@@ -8,11 +8,14 @@ export default function AdminCategoriesPage() {
     <AppShell role="admin">
       <PageHeading
         eyebrow="Catalog master"
-        title="Textile categories and item master"
-        description="The schema supports category-specific attributes and expansion into logistics, packaging, maintenance, and industrial services."
+        title="Categories and item master"
+        description="Manage procurement categories, attributes, and item-level specs. Launch catalog is seeded with textile data; the schema is built to extend into logistics, packaging, maintenance, and industrial services."
       />
       <Card>
-        <CardHeader title="Seeded textile catalog" />
+        <CardHeader
+          title="Active catalog"
+          description="Seeded for launch — textile clusters"
+        />
         <div className="grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-3">
           {textileCategories.map((category) => (
             <div key={category.slug} className="rounded-lg border border-slate-200 p-4">

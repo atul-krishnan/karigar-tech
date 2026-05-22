@@ -1,6 +1,6 @@
 # Karigar
 
-Procurement OS for Indian textile MSMEs.
+Procurement OS for Indian MSMEs. Launching first across textile clusters (Surat, Tiruppur, Coimbatore).
 
 The app is built as a free-tier-friendly Next.js full-stack product with Supabase Auth, Supabase Postgres, Prisma, invite-only RFQs, live buyer bid visibility, supplier verification, purchase orders, invoice tracking, and a future finance placeholder.
 
@@ -53,7 +53,7 @@ It includes:
 
 - Multi-tenant organizations and organization users
 - Supplier verification and documents
-- Textile category and item master
+- Category and item master (seeded with textile data for launch)
 - RFQs, invited suppliers, closed bids, bid revisions
 - Purchase orders, order status events, delivery proof
 - Invoices, invoice attachments, payments
